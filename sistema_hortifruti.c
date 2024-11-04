@@ -4,6 +4,7 @@
 #include <time.h>
 #include <windows.h>
 #include <locale.h>
+#include <ctype.h>
 
 #define MAX_PRODUTOS 100
 #define MAX_VENDAS 1000
@@ -245,27 +246,43 @@ void cadastrar_produto() {
     
     novo.codigo = num_produtos + 1;
     
-    printf("\nNome do produto: ");
-    scanf(" %[^\n]s", novo.nome);
-    getchar();
-    
+    // Validação do nome do produto: apenas letras
+    int valido;
     do {
-        printf("Preço (positivo): R$ ");
-        scanf("%f", &novo.preco);
+        printf("\nNome do produto: ");
+        scanf(" %[^\n]s", novo.nome);
         getchar();
         
-        if (novo.preco <= 0) {
-            printf("O preço deve ser positivo!\n");
+        valido = 1; // assume que é válido
+        for (int i = 0; novo.nome[i] != '\0'; i++) {
+            if (!isalpha(novo.nome[i]) && novo.nome[i] != ' ') { // permite espaço
+                valido = 0;
+                printf("Erro: O nome do produto deve conter apenas letras.\n");
+                break;
+            }
         }
-    } while (novo.preco <= 0);
+    } while (!valido);
     
+    // Validação do preço: apenas números e ponto decimal
+    do {
+        printf("Preço (positivo): R$ ");
+        valido = scanf("%f", &novo.preco);
+        getchar();
+        
+        if (!valido || novo.preco <= 0) {
+            printf("Erro: O preço deve ser um número positivo.\n");
+            valido = 0; // força nova entrada
+        }
+    } while (!valido);
+    
+    // Validação da quantidade em estoque
     do {
         printf("Quantidade em estoque (positivo): ");
         scanf("%d", &novo.estoque);
         getchar();
         
         if (novo.estoque < 0) {
-            printf("A quantidade deve ser positiva!\n");
+            printf("Erro: A quantidade deve ser positiva!\n");
         }
     } while (novo.estoque < 0);
     
@@ -438,12 +455,126 @@ void relatorio_vendas() {
 }
 
 void gerenciar_estoque() {
-    exibir_cabecalho("GERENCIAR ESTOQUE");
-    for (int i = 0; i < num_produtos; i++) {
-        printf("Produto %d: Nome: %s, Preço: R$ %.2f, Estoque: %d %s\n", produtos[i].codigo, produtos[i].nome, produtos[i].preco, produtos[i].estoque, produtos[i].unidade);
-    }
-    if (num_produtos == 0) {
-        printf("Nenhum produto cadastrado.\n");
-    }
-    getchar();
+    int opcao, codigo, quantidade;
+    float novo_preco;
+    
+    do {
+        exibir_cabecalho("GERENCIAR ESTOQUE");
+        
+        if (num_produtos == 0) {
+            printf("\nNenhum produto cadastrado.\n");
+            printf("\nPressione ENTER para voltar...");
+            getchar();
+            return;
+        }
+        
+        printf("\nProdutos em estoque:\n\n");
+        for (int i = 0; i < num_produtos; i++) {
+            printf("Código: %d | Nome: %s | Preço: R$ %.2f | Estoque: %d %s\n", 
+                   produtos[i].codigo, produtos[i].nome, produtos[i].preco, 
+                   produtos[i].estoque, produtos[i].unidade);
+        }
+        
+        printf("\n1. Adicionar quantidade ao estoque");
+        printf("\n2. Remover quantidade do estoque");
+        printf("\n3. Alterar preço do produto");
+        printf("\n0. Voltar ao menu principal");
+        printf("\n\nEscolha uma opção: ");
+        scanf("%d", &opcao);
+        getchar();
+        
+        switch(opcao) {
+            case 1:
+            case 2:
+                printf("\nDigite o código do produto: ");
+                scanf("%d", &codigo);
+                getchar();
+                
+                // Verificar se o código é válido
+                if (codigo < 1 || codigo > num_produtos) {
+                    printf("\nCódigo de produto inválido!");
+                    printf("\nPressione ENTER para continuar...");
+                    getchar();
+                    break;
+                }
+                
+                // Ajustar índice (código começa em 1, array começa em 0)
+                int index = codigo - 1;
+                
+                printf("\nQuantidade a %s: ", opcao == 1 ? "adicionar" : "remover");
+                scanf("%d", &quantidade);
+                getchar();
+                
+                if (quantidade <= 0) {
+                    printf("\nQuantidade inválida!");
+                    printf("\nPressione ENTER para continuar...");
+                    getchar();
+                    break;
+                }
+                
+                if (opcao == 1) {
+                    produtos[index].estoque += quantidade;
+                    printf("\nEstoque atualizado com sucesso!");
+                    printf("\nNovo estoque de %s: %d %s", 
+                           produtos[index].nome, produtos[index].estoque, 
+                           produtos[index].unidade);
+                } else {
+                    if (quantidade > produtos[index].estoque) {
+                        printf("\nQuantidade a remover maior que o estoque disponível!");
+                    } else {
+                        produtos[index].estoque -= quantidade;
+                        printf("\nEstoque atualizado com sucesso!");
+                        printf("\nNovo estoque de %s: %d %s", 
+                               produtos[index].nome, produtos[index].estoque, 
+                               produtos[index].unidade);
+                    }
+                }
+                printf("\nPressione ENTER para continuar...");
+                getchar();
+                break;
+
+            case 3:
+                printf("\nDigite o código do produto: ");
+                scanf("%d", &codigo);
+                getchar();
+                
+                // Verificar se o código é válido
+                if (codigo < 1 || codigo > num_produtos) {
+                    printf("\nCódigo de produto inválido!");
+                    printf("\nPressione ENTER para continuar...");
+                    getchar();
+                    break;
+                }
+                
+                // Ajustar índice (código começa em 1, array começa em 0)
+                index = codigo - 1;
+                
+                printf("\nPreço atual de %s: R$ %.2f", produtos[index].nome, produtos[index].preco);
+                printf("\nDigite o novo preço: R$ ");
+                scanf("%f", &novo_preco);
+                getchar();
+                
+                if (novo_preco <= 0) {
+                    printf("\nPreço inválido! O preço deve ser maior que zero.");
+                    printf("\nPressione ENTER para continuar...");
+                    getchar();
+                    break;
+                }
+                
+                produtos[index].preco = novo_preco;
+                printf("\nPreço atualizado com sucesso!");
+                printf("\nNovo preço de %s: R$ %.2f", produtos[index].nome, produtos[index].preco);
+                printf("\nPressione ENTER para continuar...");
+                getchar();
+                break;
+                
+            case 0:
+                return;
+                
+            default:
+                printf("\nOpção inválida!");
+                printf("\nPressione ENTER para continuar...");
+                getchar();
+        }
+    } while (opcao != 0);
 }
