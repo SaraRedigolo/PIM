@@ -46,9 +46,8 @@ int login_administrador();
 int login_caixa();
 
 int main() {
-    setlocale(LC_ALL, "pt_BR.UTF-8");
+    SetConsoleOutputCP(CP_UTF8);
     SetConsoleOutputCP(CP_ACP);
-
     selecionar_usuario();
     return 0;
 }
@@ -246,16 +245,15 @@ void cadastrar_produto() {
     
     novo.codigo = num_produtos + 1;
     
-    // Validação do nome do produto: apenas letras
     int valido;
     do {
         printf("\nNome do produto: ");
         scanf(" %[^\n]s", novo.nome);
         getchar();
         
-        valido = 1; // assume que é válido
+        valido = 1;
         for (int i = 0; novo.nome[i] != '\0'; i++) {
-            if (!isalpha(novo.nome[i]) && novo.nome[i] != ' ') { // permite espaço
+            if (!isalpha(novo.nome[i]) && novo.nome[i] != ' ') {
                 valido = 0;
                 printf("Erro: O nome do produto deve conter apenas letras.\n");
                 break;
@@ -263,7 +261,7 @@ void cadastrar_produto() {
         }
     } while (!valido);
     
-    // Validação do preço: apenas números e ponto decimal
+
     do {
         printf("Preço (positivo): R$ ");
         valido = scanf("%f", &novo.preco);
@@ -271,11 +269,10 @@ void cadastrar_produto() {
         
         if (!valido || novo.preco <= 0) {
             printf("Erro: O preço deve ser um número positivo.\n");
-            valido = 0; // força nova entrada
+            valido = 0;
         }
     } while (!valido);
     
-    // Validação da quantidade em estoque
     do {
         printf("Quantidade em estoque (positivo): ");
         scanf("%d", &novo.estoque);
@@ -490,7 +487,6 @@ void gerenciar_estoque() {
                 scanf("%d", &codigo);
                 getchar();
                 
-                // Verificar se o código é válido
                 if (codigo < 1 || codigo > num_produtos) {
                     printf("\nCódigo de produto inválido!");
                     printf("\nPressione ENTER para continuar...");
@@ -498,7 +494,7 @@ void gerenciar_estoque() {
                     break;
                 }
                 
-                // Ajustar índice (código começa em 1, array começa em 0)
+
                 int index = codigo - 1;
                 
                 printf("\nQuantidade a %s: ", opcao == 1 ? "adicionar" : "remover");
@@ -538,7 +534,6 @@ void gerenciar_estoque() {
                 scanf("%d", &codigo);
                 getchar();
                 
-                // Verificar se o código é válido
                 if (codigo < 1 || codigo > num_produtos) {
                     printf("\nCódigo de produto inválido!");
                     printf("\nPressione ENTER para continuar...");
@@ -546,7 +541,6 @@ void gerenciar_estoque() {
                     break;
                 }
                 
-                // Ajustar índice (código começa em 1, array começa em 0)
                 index = codigo - 1;
                 
                 printf("\nPreço atual de %s: R$ %.2f", produtos[index].nome, produtos[index].preco);
